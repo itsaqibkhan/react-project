@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import {
     Card, CardImg, CardText, CardBody,
-    CardTitle, Breadcrumb, BreadcrumbItem, Button, Modal, ModalHeader, ModalBody,
-    Form, FormGroup, Input, Label, Col, Row
+    CardTitle, Breadcrumb, BreadcrumbItem, Button, Modal, ModalHeader, ModalBody, Input, Label, Col, Row
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors } from 'react-redux-form';
@@ -21,7 +20,8 @@ function RenderDish({ dish }) {
         </div>
     );
 }
-function RenderComments({ comments, toggleModal }) {
+
+function RenderComments({comments, addComment, dishId}) {
     const showcomments = comments.map((comment) => {
         return (
             <div key={comment.id}>
@@ -42,7 +42,7 @@ function RenderComments({ comments, toggleModal }) {
             <h4> Comments </h4>
             <div>
                 {showcomments}
-                <CommentForm />
+                <CommentForm dishId={dishId} addComment={addComment} />
             </div>
         </div>
     );
@@ -68,7 +68,7 @@ const DishDetail = (props) => {
             </div>
             <div className="row">
                 <RenderDish dish={props.dish} />
-                <RenderComments comments={props.comments} toggleModal={props.toggleModal} />
+                <RenderComments comments={props.comments} addComment={props.addComment} dishId={props.dish.id} />
             </div>
         </div>
     );
@@ -81,14 +81,12 @@ const minLength = (len) => (val) => val && (val.length >= len);
 class CommentForm extends Component {
     constructor(props) {
         super(props);
-
         this.toggleModal = this.toggleModal.bind(this);
-        this.handleComment = this.handleComment.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
         this.state = {
             isModalOpen: false
         };
     }
-
 
     toggleModal() {
         this.setState({
@@ -96,10 +94,11 @@ class CommentForm extends Component {
         });
     }
 
-    handleComment(values) {
-        console.log('Current State is: ' + JSON.stringify(values));
-        alert('Current State is: ' + JSON.stringify(values));
-        // event.preventDefault();
+    handleSubmit(values) {
+        this.toggleModal();
+        console.log("workiiiiiiiiiiiiing");
+        this.props.addComment(this.props.dishId, values.rating, values.author, values.comment);
+        
     }
 
     render() {
@@ -109,23 +108,23 @@ class CommentForm extends Component {
                 <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
                     <ModalHeader toggle={this.toggleModal}>Submit Comment</ModalHeader>
                     <ModalBody>
-                        <LocalForm onSubmit={this.handleComment}>
+                        <LocalForm onSubmit={(values) => this.handleSubmit(values)}>
                             <Row className="form-group">
                                 <Label htmlFor="rating" md={2}>Rating</Label>
                                 <Col md={10}>
-                                    <Input type="select" id="rating" name="rating">
+                                <Control.select model=".rating" name="rating" className="col-12">
                                         <option>1</option>
                                         <option>2</option>
                                         <option>3</option>
                                         <option>4</option>
                                         <option>5</option>
-                                    </Input>
+                                </Control.select>
                                 </Col>
                             </Row>
                             <Row className="form-group">
                                 <Label htmlFor="name" md={2}>Your Name</Label>
                                 <Col md={10}>
-                                    <Control.text model=".name" id="name" name="name"
+                                    <Control.text model=".author" id="author" name="author"
                                         placeholder="Name"
                                         className="form-control"
                                         validators={{
@@ -147,8 +146,7 @@ class CommentForm extends Component {
                             <Row className="form-group">
                                 <Label for="comment" md={2}>Comment</Label>
                                 <Col md={10}>
-                                    <Input type="textbox" name="comment" id="comment" className="form-control"
-                                        rows={6} />
+                                <Control.textarea model=".comment" id="comment" name="comment " rows="6" className="form-control"/>
                                 </Col>
                             </Row>
                             <Button type="submit" value="submit" color="primary">Submit</Button>
